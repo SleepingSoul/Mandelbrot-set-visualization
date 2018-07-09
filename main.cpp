@@ -25,7 +25,7 @@ namespace GL
     // ------------------
     // number of Mandelbrot iterations.
     // default value is 100, but user can change it
-    int itr = 100;
+    int iterations = 100;
     
     // -----------------
     // IO callbacks
@@ -37,6 +37,12 @@ namespace GL
 int main()
 {
     using namespace GL;
+
+    // ------------
+    // Greet a user! :)
+    std::cout << "Hello there!\nHope you enjoy the spectacular view "
+                 "of Mandelbrot set :) \nRegards, Tihran Katolikian.\n";
+
     // ------------
     // glfw : init and config
     glfwInit();
@@ -117,7 +123,7 @@ int main()
                                                    static_cast <float>(h));
         mandelbrot_shader.setVec2("center", cx, cy);
         mandelbrot_shader.setFloat("zoom", zoom);
-        mandelbrot_shader.setInt("itr", itr);
+        mandelbrot_shader.setInt("iterations", iterations);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
@@ -166,11 +172,11 @@ void GL::processInput(GLFWwindow *window)
     }
     
     if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS &&
-        itr < std::numeric_limits <int>::max()) {
-        ++itr;
+        iterations < std::numeric_limits <int>::max()) {
+        ++iterations;
     }
     else if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS &&
-        itr > 50) {
-        --itr;
+        iterations > 50) {
+        --iterations;
     }
 }

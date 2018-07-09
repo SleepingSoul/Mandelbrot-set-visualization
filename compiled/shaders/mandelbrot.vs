@@ -1,10 +1,6 @@
-#version 410
+#version 330 core
 
 layout (location = 0) in vec3 m_pos;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
 
 void main()
 {
