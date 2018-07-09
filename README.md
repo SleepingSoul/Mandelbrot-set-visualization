@@ -1,4 +1,4 @@
-![alt text](https://raw.githubusercontent.com/SleepingSoul/Mandelbrot-set-visualization/preview.gif)
+![alt text](https://raw.githubusercontent.com/SleepingSoul/Mandelbrot-set-visualization/master/preview.gif)
 
 Hello!
 --------------------------------------
