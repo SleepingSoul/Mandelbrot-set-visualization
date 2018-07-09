@@ -1,43 +1,36 @@
-#include <iostream>
+/* Copiright 2018 Tihran Katolikian*/
 
 #include <glad/glad.h>
 #define GLFW_DLL
 #include <GL/glfw3.h>
 
+#include <cstdlib>
 #include <numeric>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "shader.hpp"
-#include "gl_image.hpp"
 
 namespace GL
 {
     // ------------------
     float delta_time, last_time;
-    //float mouse_sensitivity = 0.05f;
+    float mouse_sensitivity = 0.5f;
     
-    float zoom = 1, cx, cy;
+    // ------------------
+    // uniforms required for user interaction with
+    // rendering process
+    float zoom = 1,
+          cx = -0.5,
+          cy = 0;
+    
+    // ------------------
+    // number of Mandelbrot iterations.
+    // default value is 100, but user can change it
     int itr = 100;
     
-    class GLFWResourceGuard
-    {
-    public:
-        GLFWResourceGuard()
-        {
-            glfwInit();
-        }
-        ~GLFWResourceGuard()
-        {
-            glfwTerminate();
-        }
-    };
     // -----------------
     // IO callbacks
     void framebufferSizeCallback(GLFWwindow * const window, const int width, const int height);
-    void scrollCallback(GLFWwindow* window, const double xoffset, const double yoffset);
+    void scrollCallback(GLFWwindow * const window, const double xoffset, const double yoffset);
     void processInput(GLFWwindow *window);
 };
 
@@ -46,9 +39,15 @@ int main()
     using namespace GL;
     // ------------
     // glfw : init and config
-    GLFWResourceGuard rg;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwInit();
+    
+    // ------------
+    // we ensure that glfwTerminate function
+    // will be called before the program will end
+    std::atexit(glfwTerminate);
+    
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
     auto window = glfwCreateWindow(1000, 800,
@@ -59,16 +58,11 @@ int main()
     }
     
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, GL::framebufferSizeCallback);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSetScrollCallback(window, scrollCallback);
 
     // ------------------------------
-    // setting up mouse input mode
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // ------------------------------
     // glad: load all OpenGL function pointers
-    
     if (!gladLoadGLLoader(reinterpret_cast <GLADloadproc>(glfwGetProcAddress))) {
         std::cout << "Failed to initialize GLAD\n";
         return 0;
@@ -95,46 +89,36 @@ int main()
                           reinterpret_cast <void *>(0));
     glEnableVertexAttribArray(0);
     
-    unsigned mandelbrot_texture;
-    try {
-        mandelbrot_texture = GLTextureGenerator::generateTexture1D("resources/pal.png");
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_1D, mandelbrot_texture);
-    }
-    catch (std::runtime_error &re) {
-        std::cout << "Texture wasn't loaded because:\n" << re.what();
-    }
-    
     mandelbrot_shader.use();
     
     glClearColor(0.2f, 0.2f, 0.2f, 1.f);
     
     glBindVertexArray(VAO);
     
+    // ---------------
+    // thoose variables are needed to get the sizes of
+    // the window in the main loop
     int w, h;
     
-    cx = -0.5, cy = 0; /* Camera position and zoom value */
-    
     while(!glfwWindowShouldClose(window)) {
+        auto time = glfwGetTime();
+        delta_time = time - last_time;
+        last_time = time;
         
-        GL::processInput(window);
+        processInput(window);
+        
         glClear(GL_COLOR_BUFFER_BIT);
         
         glfwGetWindowSize(window, &w, &h);
         
-        mandelbrot_shader.setVec2("screen_size", static_cast <double>(w),
-                                                  static_cast <double>(h));
-        mandelbrot_shader.setFloat("screen_ratio", static_cast <double>(w) /
-                                                   static_cast <double>(h));
+        mandelbrot_shader.setVec2("screen_size", static_cast <float>(w),
+                                                 static_cast <float>(h));
+        mandelbrot_shader.setFloat("screen_ratio", static_cast <float>(w) /
+                                                   static_cast <float>(h));
         mandelbrot_shader.setVec2("center", cx, cy);
         mandelbrot_shader.setFloat("zoom", zoom);
         mandelbrot_shader.setInt("itr", itr);
-        
-        glm::mat4 model, view, projection;
-        view = glm::scale(view, {0.5f, 0.5f, 0.5f});
-        
-        mandelbrot_shader.setMVP(model, view, projection);
-        
+
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -152,7 +136,8 @@ void GL::framebufferSizeCallback(GLFWwindow * const window, const int width,
     glViewport(0, 0, width, height);
 }
 
-void GL::scrollCallback(GLFWwindow *window, const double xoffset, const double yoffset)
+void GL::scrollCallback(GLFWwindow * const window, const double xoffset,
+                        const double yoffset)
 {
     zoom += yoffset * 0.1 * zoom;
 	if(zoom < 0.1) {
@@ -168,24 +153,23 @@ void GL::processInput(GLFWwindow *window)
     }
     
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cy += 0.01f / zoom;
+        cy += mouse_sensitivity * delta_time / zoom;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cx -= 0.01f / zoom;
+        cx -= mouse_sensitivity * delta_time / zoom;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cy -= 0.01f / zoom;
+        cy -= mouse_sensitivity * delta_time / zoom;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cx += 0.01f / zoom;
+        cx += mouse_sensitivity * delta_time / zoom;
     }
     
     if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS &&
         itr < std::numeric_limits <int>::max()) {
         ++itr;
     }
-    
-    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS &&
+    else if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS &&
         itr > 50) {
         --itr;
     }
