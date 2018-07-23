@@ -20,7 +20,5 @@ Important!
 If you want to run it in your computer, you should install glwf3 (http://www.glfw.org/)
 and glad (https://www.khronos.org/opengl/wiki/OpenGL_Loading_Library, http://glad.dav1d.de/). I do not neither own nor provide
 this headers.
-Also, i use stb_image.h header from stb library. It is provided in external folder for convenience, but i do not own this header.
-Link is provided here: https://github.com/nothings/stb.
 glad.c header is generated automatically and i cannot guarantee it will work in your computer. I would recommend to replace it on new
 file, generated in http://glad.dav1d.de/.

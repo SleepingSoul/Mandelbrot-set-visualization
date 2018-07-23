@@ -155,7 +155,7 @@ public:
         glUniform1f(glGetUniformLocation(id, name.c_str()), value);
     }
     
-    #ifdef OPENGL_SHADER_DOUBLE_PRESISION
+#ifdef OPENGL_SHADER_DOUBLE_PRESISION
     // --------------------------
     // WARNING! Double-presision on GPU only supported in versions 4 and higher!
     void setDouble(const std::string &name, const double &value)
@@ -169,7 +169,7 @@ public:
         //may not work in versions lesser then 4
         glUniform2d(glGetUniformLocation(id, name.c_str()), a, b);
     }
-    #endif
+#endif
     
     // -------------------------
     void setVec2(const std::string &name, const glm::vec2 &value) const

@@ -5,7 +5,6 @@
 #include <GL/glfw3.h>
 
 #include <cstdlib>
-#include <numeric>
 
 #include "shader.hpp"
 
